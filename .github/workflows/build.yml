@@ -15,7 +15,10 @@ jobs:
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
-      - run: sdkmanager 'platforms;android-37' 'build-tools;36.0.0'
+      - run: |
+          sdkmanager 'platforms;android-37.0' 'build-tools;36.0.0'
+          # AGP 9.0 resolves integer compileSdk 37 to the legacy platform directory name.
+          ln -s "$ANDROID_HOME/platforms/android-37.0" "$ANDROID_HOME/platforms/android-37"
       - run: sh preflight.sh
       - uses: gradle/actions/setup-gradle@v4
       - run: sh gradlew :app:assembleRelease :app:testDebugUnitTest --no-daemon

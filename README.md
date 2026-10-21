@@ -35,7 +35,8 @@
 
 ## 构建
 
-需要 JDK 17、Android SDK Platform 37 和 Build Tools 36.0.0，使用仓库内 Gradle Wrapper，无需全局 Gradle。
+需要 JDK 17、Android SDK Platform 37.0 和 Build Tools 36.0.0，使用仓库内 Gradle Wrapper，无需全局 Gradle。
+SDK Manager 中的平台包名为 `platforms;android-37.0`。当前 AGP 9.0 使用 `android-37` 目录名；若本机只有 `platforms/android-37.0`，需为其建立 `platforms/android-37` 目录链接（Windows 可用 Junction）。CI 已包含此兼容处理。
 
 Windows：
 
