@@ -1,0 +1,19 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="com.android.permission.GET_INSTALLED_APPS" />
+    <application android:label="RearMusic" android:theme="@style/AppTheme" android:icon="@drawable/ic_launcher"
+        android:allowBackup="false" android:directBootAware="true">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="小米 17 Pro / Pro Max 背屏音乐白名单与音频走马灯" />
+        <meta-data android:name="xposedminversion" android:value="82" />
+        <meta-data android:name="xposedscope" android:resource="@array/xposed_scope" />
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <provider android:name=".ConfigProvider" android:authorities="com.zpb.rearmusic.config"
+            android:exported="true" android:directBootAware="true" />
+    </application>
+</manifest>
