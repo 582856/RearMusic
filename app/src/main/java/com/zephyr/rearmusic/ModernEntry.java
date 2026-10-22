@@ -1,4 +1,4 @@
-package com.zpb.rearmusic;
+package com.zephyr.rearmusic;
 
 import android.util.Log;
 import io.github.libxposed.api.XposedInterface;

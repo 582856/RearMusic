@@ -1,4 +1,4 @@
-package com.zpb.rearmusic;
+package com.zephyr.rearmusic;
 
 import android.app.Application;
 import android.content.Context;
@@ -30,7 +30,7 @@ final class Hooks {
                     new Thread(() -> WhitelistHook.install(context, hook), "RearMusic-DexKit").start();
                 } else {
                     try { new RearVisualizer(context).start(); }
-                    catch (Throwable error) { Settings.report(context, "走马灯初始化失败：" + error.getClass().getSimpleName()); Log.e(Settings.TAG, "Visualizer init", error); }
+                    catch (Throwable error) { Settings.report(context, "摄像头律动初始化失败：" + error.getClass().getSimpleName()); Log.e(Settings.TAG, "Visualizer init", error); }
                 }
             });
         });

@@ -1,9 +1,9 @@
 plugins { id "com.android.application" }
 android {
-    namespace "com.zpb.rearmusic.testplayer"
+    namespace "com.zephyr.rearmusic.testplayer"
     compileSdk 37
     defaultConfig {
-        applicationId "com.zpb.rearmusic.testplayer"
+        applicationId "com.zephyr.rearmusic.testplayer"
         minSdk 35
         targetSdk 36
         versionCode 1

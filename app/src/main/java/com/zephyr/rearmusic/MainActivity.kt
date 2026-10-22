@@ -1,7 +1,6 @@
-package com.zpb.rearmusic
+package com.zephyr.rearmusic
 
 import android.content.SharedPreferences
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
@@ -34,7 +33,6 @@ import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.darkColorScheme
 import top.yukonga.miuix.kmp.theme.lightColorScheme
-import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     private var appsRevision by mutableIntStateOf(0)
@@ -46,6 +44,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        val changes = packageManager.getChangedPackages(packageSequence)
+        if (changes != null) {
+            packageSequence = changes.sequenceNumber
+            cachedApps = null
+        }
         appsRevision++
     }
 
@@ -74,7 +77,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private data class App(val label: String, val pkg: String, val system: Boolean, val icon: ImageBitmap)
+    private data class App(val label: String, val pkg: String, val icon: ImageBitmap)
+    companion object {
+        private var cachedApps: List<App>? = null
+        private var packageSequence = 0
+    }
 
     @Composable
     private fun MusicSettings() {
@@ -87,14 +94,14 @@ class MainActivity : ComponentActivity() {
         }
         val selected = remember(revision) { prefs.getStringSet("apps", emptySet())!!.toSet() }
         var query by rememberSaveable { mutableStateOf("") }
-        var showSystem by rememberSaveable { mutableStateOf(false) }
-        var apps by remember { mutableStateOf<List<App>>(emptyList()) }
-        var loading by remember { mutableStateOf(true) }
+        var apps by remember { mutableStateOf(cachedApps.orEmpty()) }
+        var loading by remember { mutableStateOf(cachedApps == null) }
         var loadError by remember { mutableStateOf(false) }
         val authorized = remember(appsRevision) { canReadApps() }
         LaunchedEffect(appsRevision) {
-            if (!authorized) { apps = emptyList(); loading = false; return@LaunchedEffect }
-            loading = true
+            if (!authorized) { cachedApps = null; apps = emptyList(); loading = false; return@LaunchedEffect }
+            cachedApps?.let { apps = it; loading = false; return@LaunchedEffect }
+            loading = apps.isEmpty()
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     packageManager.getInstalledApplications(0).filter {
@@ -105,36 +112,28 @@ class MainActivity : ComponentActivity() {
                         val bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
                         icon.setBounds(0, 0, 96, 96)
                         icon.draw(Canvas(bitmap))
-                        App(it.loadLabel(packageManager).toString(), it.packageName,
-                            it.flags and ApplicationInfo.FLAG_SYSTEM != 0, bitmap.asImageBitmap())
+                        App(it.loadLabel(packageManager).toString(), it.packageName, bitmap.asImageBitmap())
                     }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.label })
                 }
             }
             apps = result.getOrDefault(emptyList())
+            if (result.isSuccess) cachedApps = apps
             loadError = result.isFailure
             loading = false
         }
-        val visible = remember(apps, query, showSystem, selected) {
-            apps.filter { (showSystem || !it.system || it.pkg in selected) &&
-                (it.label.contains(query, true) || it.pkg.contains(query, true)) }
+        val visible = remember(apps, query, selected) {
+            apps.filter { it.label.contains(query, true) || it.pkg.contains(query, true) }
                 .sortedByDescending { it.pkg in selected }
         }
         Scaffold(topBar = {
-            SmallTopAppBar(title = "RearMusic", actions = {
-                Row(Modifier.padding(end = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("系统应用", style = MiuixTheme.textStyles.footnote1)
-                    Spacer(Modifier.width(8.dp))
-                    Switch(checked = showSystem, onCheckedChange = { showSystem = it },
-                        modifier = Modifier.semantics { contentDescription = "显示系统应用" })
-                }
-            })
+            SmallTopAppBar(title = "RearMusic")
         }) { padding ->
             LazyColumn(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding()).imePadding(),
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp,
                     bottom = padding.calculateBottomPadding() + 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item {
-                    Text("小米 17 Pro / Pro Max · 背屏音乐", Modifier.padding(top = 8.dp, bottom = 4.dp),
+                    Text("仅适配小米 17 Pro Max · 背屏音乐律动", Modifier.padding(top = 8.dp, bottom = 4.dp),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                 }
@@ -142,10 +141,14 @@ class MainActivity : ComponentActivity() {
                     Card(insideMargin = PaddingValues(20.dp)) {
                         Text("模块状态", style = MiuixTheme.textStyles.headline1)
                         Spacer(Modifier.height(10.dp))
-                        Text(prefs.getString("status_whitelist", "白名单：尚未注入")!!,
+                        Text(when {
+                            prefs.getString("status_whitelist", "")!!.startsWith("白名单已注入") -> "白名单：注入成功"
+                            prefs.getString("status_whitelist", "")!!.startsWith("白名单适配失败") -> "白名单：注入失败"
+                            else -> "白名单：尚未注入"
+                        },
                             style = MiuixTheme.textStyles.footnote1)
                         Spacer(Modifier.height(6.dp))
-                        Text(prefs.getString("status_systemui", "走马灯：尚未注入")!!,
+                        Text(prefs.getString("status_systemui", "摄像头律动：尚未注入")!!,
                             style = MiuixTheme.textStyles.footnote1)
                         Spacer(Modifier.height(12.dp))
                         Text("在 LSPosed 中启用模块，勾选背屏中心、系统界面，然后重启手机。",
@@ -155,16 +158,8 @@ class MainActivity : ComponentActivity() {
                 }
                 item {
                     Card(insideMargin = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
-                        SettingSwitch("音乐控件白名单", "让选中的播放器进入背屏音乐空间", "whitelist", true, prefs, revision)
-                        SettingSwitch("音频走马灯", "随真实音频律动，暂停或熄屏时隐藏", "lights", true, prefs, revision)
-                        SettingSwitch("切歌强制刷新", "音乐信息不更新时开启", "force_update", false, prefs, revision)
-                    }
-                }
-                item {
-                    Card(insideMargin = PaddingValues(20.dp)) {
-                        SettingSlider("灯条高度", "height", 24f..72f, 40, prefs)
-                        Spacer(Modifier.height(14.dp))
-                        SettingSlider("距离屏幕底部", "bottom", 0f..100f, 8, prefs)
+                        SettingSwitch("背屏音乐律动", "包围双摄像头，音柱随音乐起伏", "lights", true, prefs, revision)
+                        SettingSwitch("息屏继续显示律动", "音乐组件显示时保持背屏亮起，会增加耗电", "screen_off_lights", false, prefs, revision)
                     }
                 }
                 item {
@@ -235,20 +230,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    private fun SettingSlider(title: String, key: String, range: ClosedFloatingPointRange<Float>,
-                              fallback: Int, prefs: SharedPreferences) {
-        var value by remember { mutableFloatStateOf(prefs.getInt(key, fallback).toFloat()) }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, Modifier.weight(1f))
-            Text("${value.roundToInt()} dp", style = MiuixTheme.textStyles.footnote1,
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
-        }
-        Spacer(Modifier.height(12.dp))
-        Slider(value = value, onValueChange = { value = it }, valueRange = range,
-            onValueChangeFinished = {
-                prefs.edit().putInt(key, value.roundToInt()).apply()
-                Settings.changed(this)
-            }, modifier = Modifier.fillMaxWidth().semantics { contentDescription = title })
-    }
 }

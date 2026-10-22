@@ -1,6 +1,6 @@
 # 可选测试音源
 
-独立 APK，包名 `com.zpb.rearmusic.testplayer`，不会打入 RearMusic 模块。
+独立 APK，包名 `com.zephyr.rearmusic.testplayer`，不会打入 RearMusic 模块。
 点击播放后生成低音量合成节拍，提供 MediaSession、标题和播放/暂停回调，2 分钟自动停止。
 不包含歌曲，不读取媒体文件，不使用网络。
 

@@ -4,7 +4,7 @@
     <application android:label="RearMusic" android:theme="@style/AppTheme" android:icon="@drawable/ic_launcher"
         android:allowBackup="false" android:directBootAware="true">
         <meta-data android:name="xposedmodule" android:value="true" />
-        <meta-data android:name="xposeddescription" android:value="小米 17 Pro / Pro Max 背屏音乐白名单与音频走马灯" />
+        <meta-data android:name="xposeddescription" android:value="仅适配小米 17 Pro Max。扩展背屏音乐空间播放器白名单，复用系统封面、歌名、歌手与播放控制；双摄像头之间显示音乐律动，支持息屏继续显示。作用域：背屏中心、系统界面。" />
         <meta-data android:name="xposedminversion" android:value="82" />
         <meta-data android:name="xposedscope" android:resource="@array/xposed_scope" />
         <activity android:name=".MainActivity" android:exported="true">
@@ -13,7 +13,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <provider android:name=".ConfigProvider" android:authorities="com.zpb.rearmusic.config"
+        <provider android:name=".ConfigProvider" android:authorities="com.zephyr.rearmusic.config"
             android:exported="true" android:directBootAware="true" />
     </application>
 </manifest>
