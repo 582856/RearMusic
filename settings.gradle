@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories { google(); mavenCentral(); gradlePluginPortal() }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://api.xposed.info/") }
+    }
+}
+rootProject.name = "RearMusic"
+include(":app", ":libxposed-stubs", ":legacy-xposed-stubs")
+include(":test-player")
+project(":test-player").projectDir = file("tools/test-player")

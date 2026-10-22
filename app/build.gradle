@@ -1,0 +1,48 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.plugin.compose"
+}
+android {
+    namespace "com.zephyr.rearmusic"
+    compileSdk 37
+    defaultConfig {
+        applicationId "com.zephyr.rearmusic"
+        minSdk 35
+        targetSdk 36
+        versionCode 34
+        versionName "0.1.32"
+        buildConfigField "boolean", "DIAGNOSTIC", "false"
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+    buildTypes {
+        diagnostic {
+            initWith release
+            matchingFallbacks = ["release"]
+            debuggable true
+            minifyEnabled false
+            shrinkResources false
+            versionNameSuffix "-debug2"
+            buildConfigField "boolean", "DIAGNOSTIC", "true"
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildFeatures { compose true; buildConfig true }
+    packaging { resources { excludes += ["/META-INF/{AL2.0,LGPL2.1}"] } }
+}
+dependencies {
+    compileOnly project(":legacy-xposed-stubs")
+    compileOnly project(":libxposed-stubs")
+    implementation "org.luckypray:dexkit:2.2.0"
+    implementation "androidx.activity:activity-compose:1.13.0"
+    implementation "top.yukonga.miuix.kmp:miuix-ui:0.9.3"
+    testImplementation "junit:junit:4.13.2"
+}

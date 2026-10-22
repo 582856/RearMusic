@@ -1,0 +1,4 @@
+minApiVersion=101
+targetApiVersion=101
+staticScope=false
+description=仅适配小米 17 Pro Max。扩展背屏音乐空间播放器白名单，复用系统封面、歌名、歌手与播放控制；双摄像头之间显示音乐律动，支持息屏继续显示。作用域：背屏中心、系统界面。
